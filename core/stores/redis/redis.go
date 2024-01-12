@@ -59,6 +59,7 @@ type (
 		tls   bool
 		brk   breaker.Breaker
 		hooks []red.Hook
+		DB    int
 	}
 
 	// RedisNode interface represents a redis node.
@@ -101,7 +102,7 @@ func MustNewRedis(conf RedisConf, opts ...Option) *Redis {
 // New returns a Redis with given options.
 // Deprecated: use MustNewRedis or NewRedis instead.
 func New(addr string, opts ...Option) *Redis {
-	return newRedis(addr, opts...)
+	return newRedis(addr, 0, opts...)
 }
 
 // NewRedis returns a Redis with given options.
@@ -120,7 +121,7 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 		opts = append([]Option{WithTLS()}, opts...)
 	}
 
-	rds := newRedis(conf.Host, opts...)
+	rds := newRedis(conf.Host, conf.DB, opts...)
 	if !conf.NonBlock {
 		if err := rds.checkConnection(conf.PingTimeout); err != nil {
 			return nil, errorx.Wrap(err, fmt.Sprintf("redis connect error, addr: %s", conf.Host))
@@ -130,11 +131,12 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	return rds, nil
 }
 
-func newRedis(addr string, opts ...Option) *Redis {
+func newRedis(addr string, db int, opts ...Option) *Redis {
 	r := &Redis{
 		Addr: addr,
 		Type: NodeType,
 		brk:  breaker.NewBreaker(),
+		DB:   db,
 	}
 
 	for _, opt := range opts {

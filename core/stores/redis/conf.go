@@ -24,6 +24,7 @@ type (
 		NonBlock bool   `json:",default=true"`
 		// PingTimeout is the timeout for ping redis.
 		PingTimeout time.Duration `json:",default=1s"`
+		DB          int
 	}
 
 	// A RedisKeyConf is a redis config with key.
